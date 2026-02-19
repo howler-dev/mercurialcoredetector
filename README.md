@@ -109,3 +109,8 @@ MIT
 ## OS Files
 - .DS_Store
 - Thumbs.db
+
+# How to Use MCD in a Distributed Training Cluster
+1. On each worker after computing local gradients, call `save_checkpoint(gradients, size)`. Store the returned robust checksum (the internal `g_checkpoint` value) and send it along with the gradients to the parameter server.
+2. On the parameter server upon receiving gradients, recompute their checksum using the same consensus logic (you could call the internal `consensus_checksum` if you expose it, or simply re‑run `save_checkpoint` on a temporary copy). Compare with the received checksum. If they differ, discard the gradients and mark the worker as suspicious.
+3. After synchronization, workers can optionally verify that the averaged gradients received from the server match a precomputed expectation (if the server also sends a checksum). This creates a two‑way check against corruption during transmission or averaging.
