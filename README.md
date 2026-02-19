@@ -1,12 +1,10 @@
-# mercurialcoredetector
-A clean C library to detect silent hardware corruption in distributed training clusters. It uses triple modular redundancy and consensus checks to create verifiable checkpoints of program state, safeguarding against corrupted gradients during synchronization.
-
 # Mercurial Core Detector (MCD)
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+A clean C library to detect silent hardware corruption in distributed training clusters. It uses triple modular redundancy and consensus checks to create verifiable checkpoints of program state, safeguarding against corrupted gradients during synchronization.
+
 MCD protects distributed training clusters from silent data corruption caused by faulty GPUs (“mercurial cores”).  
-It creates robust checkpoints of critical data (e.g., gradients) using three independent checksum algorithms and a majority vote.  
+It creates checkpoints of critical data (e.g., gradients) using three independent checksum algorithms and a majority vote.  
 If corruption occurs during computation or synchronization, the verification step will detect it.
 
 ## Why Traditional Defences Fail
@@ -73,66 +71,39 @@ gcc -Wall -Wextra -pedantic -std=c99 -I./src -c -o src/checkpoint.o src/checkpoi
 gcc -Wall -Wextra -pedantic -std=c99 -I./src -c -o tests/test_checkpoint.o tests/test_checkpoint.c
 gcc -o test_checkpoint src/checkpoint.o tests/test_checkpoint.o
 $ ./test_checkpoint
+
 All tests passed.
 ```
 ## Design Constraints (Enfored in Code)
 
-> No recursion.
-> Every loop has a provable upper bound.
-> No dynamic memory allocation after initialisation.
-> Maximum 60 lines per function.
-> Minimum 2 assertions per function.
-> Every return value checked.
-> Zero compiler warnings (`-Wall -Wextra -pedantic`).
-> No function pointers.
-> Restricted pointer dereferencing (only simple reads).
+- No recursion.
+- Every loop has a provable upper bound.
+- No dynamic memory allocation after initialisation.
+- Maximum 60 lines per function.
+- Minimum 2 assertions per function.
+- Every return value checked.
+- Zero compiler warnings (`-Wall -Wextra -pedantic`).
+- No function pointers.
+- Restricted pointer dereferencing (only simple reads).
 
 ## License
 
 MIT
 
 ## Object Files
-*.o
-*.a
-*.so
+- *.o
+- *.a
+- *.so
 
 ## Executables
-test_checkpoint
-test
+- test_checkpoint
+- test
 
 ## Editor Files
-*.swp
-*.swo
-*~
+- *.swp
+- *.swo
+- *~
 
 ## OS Files
-.DS_Store
-Thumbs.db
-
-## Make File
-```
-CC = gcc
-CFLAGS = -Wall -Wextra -pedantic -std=c99 -I./src
-TARGET = test_checkpoint
-SRCDIR = src
-TESTDIR = tests
-
-_OBJ = checkpoint.o
-OBJ = $(patsubst %,$(SRCDIR)/%,$(_OBJ))
-
-_DEPS = checkpoint.h
-DEPS = $(patsubst %,$(SRCDIR)/%,$(_DEPS))
-
-$(SRCDIR)/%.o: $(SRCDIR)/%.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
-
-$(TESTDIR)/%.o: $(TESTDIR)/%.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
-
-$(TARGET): $(OBJ) $(TESTDIR)/test_checkpoint.o
-	$(CC) -o $@ $^ $(CFLAGS)
-
-.PHONY: clean
-clean:
-	rm -f $(SRCDIR)/*.o $(TESTDIR)/*.o $(TARGET)
-```
+- .DS_Store
+- Thumbs.db
