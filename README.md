@@ -1,5 +1,5 @@
 # mercurialcoredetector
-A robust C library to detect silent hardware corruption in distributed training clusters. It uses triple modular redundancy and consensus checks to create verifiable checkpoints of program state, safeguarding against corrupted gradients during synchronization.
+A clean C library to detect silent hardware corruption in distributed training clusters. It uses triple modular redundancy and consensus checks to create verifiable checkpoints of program state, safeguarding against corrupted gradients during synchronization.
 
 # Mercurial Core Detector (MCD)
 
@@ -18,17 +18,15 @@ If corruption occurs during computation or synchronization, the verification ste
 MCD uses only simple integer operations and triple redundancy to minimise the risk of common‑mode failures.
 
 ## Features
-Triple checksum redundancy – three diverse algorithms (simple sum, linear hash, CRC-32) vote on the correct value.
+1. Triple Checksum Redundancy: Three algorithms (simple sum, linear hash, CRC-32) vote on the correct value.
+2. Majority‑vote Consensus: If at least two checksums agree, the result is stored; otherwise an error is raised.
+3. Checkpoint & Verify: Save a checkpoint before a critical operation, then verify afterwards.
 
-Majority‑vote consensus – if at least two checksums agree, the result is stored; otherwise an error is raised.
-
-Checkpoint & verify – save a robust checkpoint before a critical operation, then verify afterwards.
-
-Strict C code – no recursion, bounded loops, no dynamic memory after init, function length ≤60 lines, assertions, checked return values, zero compiler warnings, and restricted pointer use.
+NOTE: This is created with strict C coding, i.e., no recursion, bounded loops, no dynamic memory after init, function length ≤60 lines, assertions, checked return values, zero compiler warnings, and restricted pointer use.
 
 ## Repository Structure
 
-```text
+```
 mercurial-core-detector/
 ├── LICENSE
 ├── README.md
@@ -45,7 +43,7 @@ mercurial-core-detector/
 
 Include `checkpoint.h` in your code:
 
-```c
+```
 #include "checkpoint.h"
 
 // Example: save checkpoint of gradient data
