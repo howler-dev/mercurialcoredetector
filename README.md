@@ -86,6 +86,8 @@ All tests passed.
 - No function pointers.
 - Restricted pointer dereferencing (only simple reads).
 
+For more clarity on these constraints, please see: `CONTRIBUTING.md`
+
 ## License
 
 MIT
