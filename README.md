@@ -9,13 +9,37 @@ MCD protects distributed training clusters from silent data corruption caused by
 It creates robust checkpoints of critical data (e.g., gradients) using three independent checksum algorithms and a majority vote.  
 If corruption occurs during computation or synchronization, the verification step will detect it.
 
-## Why traditional defences fail
+## Why Traditional Defences Fail
 
 - ECC memory cannot catch corruption that happens during computation.
 - Checksums like CRC rely on vector instructions, which are themselves vulnerable.
 - Any detection tool running on the same flawed hardware is suspect.
 
 MCD uses only simple integer operations and triple redundancy to minimise the risk of common‑mode failures.
+
+## Features
+Triple checksum redundancy – three diverse algorithms (simple sum, linear hash, CRC-32) vote on the correct value.
+
+Majority‑vote consensus – if at least two checksums agree, the result is stored; otherwise an error is raised.
+
+Checkpoint & verify – save a robust checkpoint before a critical operation, then verify afterwards.
+
+Strict C code – no recursion, bounded loops, no dynamic memory after init, function length ≤60 lines, assertions, checked return values, zero compiler warnings, and restricted pointer use.
+
+## Repository Structure
+
+```text
+mercurial-core-detector/
+├── LICENSE
+├── README.md
+├── .gitignore
+├── Makefile
+├── src/
+│   ├── checkpoint.h
+│   └── checkpoint.c
+└── tests/
+    └── test_checkpoint.c
+```
 
 ## Usage
 
@@ -40,3 +64,77 @@ if (ret == -3) {
 } else if (ret != 0) {
     fprintf(stderr, "Consensus error – checksum computation itself may be faulty.\n");
 }
+```
+## Building
+Run `make` to build the library and test executable.
+The test program runs a series of checks and prints a summary.
+
+```
+$ make
+gcc -Wall -Wextra -pedantic -std=c99 -I./src -c -o src/checkpoint.o src/checkpoint.c
+gcc -Wall -Wextra -pedantic -std=c99 -I./src -c -o tests/test_checkpoint.o tests/test_checkpoint.c
+gcc -o test_checkpoint src/checkpoint.o tests/test_checkpoint.o
+$ ./test_checkpoint
+All tests passed.
+```
+## Design Constraints (Enfored in Code)
+
+> No recursion.
+> Every loop has a provable upper bound.
+> No dynamic memory allocation after initialisation.
+> Maximum 60 lines per function.
+> Minimum 2 assertions per function.
+> Every return value checked.
+> Zero compiler warnings (`-Wall -Wextra -pedantic`).
+> No function pointers.
+> Restricted pointer dereferencing (only simple reads).
+
+## License
+
+MIT
+
+## Object Files
+*.o
+*.a
+*.so
+
+## Executables
+test_checkpoint
+test
+
+## Editor Files
+*.swp
+*.swo
+*~
+
+## OS Files
+.DS_Store
+Thumbs.db
+
+## Make File
+```
+CC = gcc
+CFLAGS = -Wall -Wextra -pedantic -std=c99 -I./src
+TARGET = test_checkpoint
+SRCDIR = src
+TESTDIR = tests
+
+_OBJ = checkpoint.o
+OBJ = $(patsubst %,$(SRCDIR)/%,$(_OBJ))
+
+_DEPS = checkpoint.h
+DEPS = $(patsubst %,$(SRCDIR)/%,$(_DEPS))
+
+$(SRCDIR)/%.o: $(SRCDIR)/%.c $(DEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+$(TESTDIR)/%.o: $(TESTDIR)/%.c $(DEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+$(TARGET): $(OBJ) $(TESTDIR)/test_checkpoint.o
+	$(CC) -o $@ $^ $(CFLAGS)
+
+.PHONY: clean
+clean:
+	rm -f $(SRCDIR)/*.o $(TESTDIR)/*.o $(TARGET)
+```
